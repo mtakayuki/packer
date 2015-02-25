@@ -15,6 +15,7 @@ type StepRunSourceServer struct {
 	SourceImage    string
 	SecurityGroups []string
 	Networks       []string
+	VolumeSize     string
 
 	server *gophercloud.Server
 }
@@ -37,13 +38,27 @@ func (s *StepRunSourceServer) Run(state multistep.StateBag) multistep.StepAction
 		networks[i].Uuid = networkUuid
 	}
 
+	blockDeviceMappingV2 := make([]map[string]interface{}, 0, 1)
+	if s.VolumeSize != "" {
+		bdm := make(map[string]interface{})
+		bdm["device_name"] = "/dev/vda"
+		bdm["boot_index"] = "0"
+		bdm["source_type"] = "image"
+		bdm["destination_type"] = "volume"
+		bdm["volume_size"] = s.VolumeSize
+		bdm["uuid"] = s.SourceImage
+		bdm["delete_on_termination"] = true
+		blockDeviceMappingV2 = append(blockDeviceMappingV2, bdm)
+	}
+
 	server := gophercloud.NewServer{
-		Name:          s.Name,
-		ImageRef:      s.SourceImage,
-		FlavorRef:     s.Flavor,
-		KeyPairName:   keyName,
-		SecurityGroup: securityGroups,
-		Networks:      networks,
+		Name:                 s.Name,
+		ImageRef:             s.SourceImage,
+		FlavorRef:            s.Flavor,
+		KeyPairName:          keyName,
+		SecurityGroup:        securityGroups,
+		Networks:             networks,
+		BlockDeviceMappingV2: blockDeviceMappingV2,
 	}
 
 	serverResp, err := csp.CreateServer(server)

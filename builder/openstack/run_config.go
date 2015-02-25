@@ -21,6 +21,7 @@ type RunConfig struct {
 	FloatingIp        string   `mapstructure:"floating_ip"`
 	SecurityGroups    []string `mapstructure:"security_groups"`
 	Networks          []string `mapstructure:"networks"`
+	VolumeSize        string   `mapstructure:"volume_size"`
 
 	// Unexported fields that are calculated from others
 	sshTimeout time.Duration
@@ -75,6 +76,7 @@ func (c *RunConfig) Prepare(t *packer.ConfigTemplate) []error {
 		"openstack_provider": &c.OpenstackProvider,
 		"floating_ip_pool":   &c.FloatingIpPool,
 		"floating_ip":        &c.FloatingIp,
+		"volume_size":        &c.VolumeSize,
 	}
 
 	for n, ptr := range templates {
